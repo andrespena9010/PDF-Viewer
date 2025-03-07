@@ -1,6 +1,5 @@
 package com.example.pdfviewer.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -9,28 +8,38 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+val LightColorScheme = lightColorScheme(
+    primary = Color(0xFFD1B3FF), // Lila elegante
+    onPrimary = Color.Black,
+    secondary = Color(0xFFE6CCFF), // Lila claro
+    onSecondary = Color.Black,
+    tertiary = Color(0xFFF2E5FF), // Lila pastel
+    onTertiary = Color.Black,
+    background = Color(0xFFF9F8F7), // Casi blanco
+    onBackground = Color.Black,
+    surface = Color(0xFFEDE7F6), // Lila muy claro
+    onSurface = Color.Black,
+    error = Color(0xFF8B0000), // Rojo oscuro elegante
+    onError = Color.White,
+    outline = Color(0xFF4B0082) // Índigo oscuro para contraste
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF9A7DFF), // Lila intenso
     onPrimary = Color.White,
+    secondary = Color(0xFF7E57C2), // Lila profundo
     onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    tertiary = Color(0xFFB39DDB), // Lila suave
+    background = Color(0xFF1C1C1E), // Casi negro
+    onBackground = Color.White,
+    surface = Color(0xFF2A2A2E), // Gris oscuro con toque lila
+    onSurface = Color.White,
+    error = Color(0xFFFF4444), // Rojo vibrante para destacar
+    onError = Color.Black,
+    outline = Color(0xFFD8BFD8) // Lila pálido para elegancia
 )
 
 @Composable
