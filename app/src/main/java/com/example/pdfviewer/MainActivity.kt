@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import com.example.pdfviewer.data.local.LocalData
 import com.example.pdfviewer.navigation.Navigation
 import com.example.pdfviewer.ui.viewmodel.PrincipalViewModel
 
@@ -14,6 +15,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        LocalData.setFilesDir( this.filesDir )
         enableEdgeToEdge()
         setContent {
             Navigation()

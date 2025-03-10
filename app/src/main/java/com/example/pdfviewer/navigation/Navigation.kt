@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pdfviewer.ui.theme.PDFViewerTheme
+import com.example.pdfviewer.ui.view.Libraries
 import com.example.pdfviewer.ui.view.PDFList
 import com.example.pdfviewer.ui.view.PDFViewer
 import com.example.pdfviewer.ui.view.Principal
@@ -17,6 +18,9 @@ sealed class Views {
 
     @Serializable
     object Principal : NoParamView
+
+    @Serializable
+    object Libraries : NoParamView
 
     @Serializable
     object PDFList : NoParamView
@@ -38,6 +42,12 @@ fun Navigation(){
         composable<Views.Principal>{
             PDFViewerTheme {
                 Principal( nav = navController )
+            }
+        }
+
+        composable<Views.Libraries>{
+            PDFViewerTheme {
+                Libraries( nav = navController )
             }
         }
 

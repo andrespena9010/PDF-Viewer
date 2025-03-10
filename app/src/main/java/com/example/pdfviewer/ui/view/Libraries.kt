@@ -17,16 +17,23 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pdfviewer.navigation.Views
 import com.example.pdfviewer.ui.custom.ButtonPrincipal
+import com.example.pdfviewer.ui.custom.TopAppBarBack
+import com.example.pdfviewer.ui.data.listLib
 import com.example.pdfviewer.ui.theme.PDFViewerTheme
 import com.example.pdfviewer.ui.viewmodel.PrincipalViewModel
 
 @Composable
-fun Principal(
+fun Libraries(
     viewModel: PrincipalViewModel = viewModel(),
     nav: NavController = rememberNavController()
 ){
     Scaffold(
-
+        topBar = {
+            TopAppBarBack(
+                title = "Libraries",
+                nav = nav
+            )
+        }
     ){ innerPaddings ->
         Column(
             modifier = Modifier
@@ -35,23 +42,16 @@ fun Principal(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            ButtonPrincipal(
-                text = "Con cache",
-                modifier = Modifier
-                    .padding(30.dp)
-                    .fillMaxWidth(0.7f)
-            ) {
-                viewModel.setCache( true )
-                nav.navigate( Views.Libraries )
-            }
-            ButtonPrincipal(
-                text = "Sin cache",
-                modifier = Modifier
-                    .padding(30.dp)
-                    .fillMaxWidth(0.7f)
-            ) {
-                viewModel.setCache( false )
-                nav.navigate( Views.Libraries )
+            listLib.forEach { ( lib, name ) ->
+                ButtonPrincipal(
+                    text = name,
+                    modifier = Modifier
+                        .padding(30.dp)
+                        .fillMaxWidth(0.7f)
+                ) {
+                    viewModel.setLibrary( lib )
+                    nav.navigate( Views.PDFList )
+                }
             }
         }
     }
@@ -66,6 +66,6 @@ fun Principal(
 @Composable
 private fun PreviewPixel(){
     PDFViewerTheme {
-        Principal()
+        Libraries()
     }
 }
