@@ -4,6 +4,7 @@ import android.net.Uri
 
 data class PDF (
     val name: String = "",
+    val fileName: String = "",
     val url: String = "",
     val uri: Uri? = null
 )
