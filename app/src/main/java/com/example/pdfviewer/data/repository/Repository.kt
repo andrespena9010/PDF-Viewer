@@ -1,5 +1,6 @@
 package com.example.pdfviewer.data.repository
 
+import android.net.Uri
 import android.util.Log
 import com.example.pdfviewer.data.local.LocalData
 import com.example.pdfviewer.data.model.GetPDFResponse
@@ -14,6 +15,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.PrintWriter
 
 object Repository {
@@ -55,6 +57,10 @@ object Repository {
         }
 
         return SetUriResponse( getPDFResponse = getResponse, savePDFResponse = saveResponse)
+    }
+
+    fun exist( fileName: String ): Uri? {
+        return local.exist( fileName )
     }
 
 }

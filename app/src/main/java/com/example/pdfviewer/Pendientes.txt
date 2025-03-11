@@ -1,0 +1,24 @@
+PDF
+
+Se inicia el desarrollo y evaluacion de las alternativas para una aplicacion de visualizacion de PDF. -> HECHO
+
+Implementar AndroidX PDF. -> no se puede con compose.
+Implementar PdfRenderer.
+Implementar ApachePDFBox.
+Implementar MuPDF.
+Intentar renderizado con OpenGL.
+
+Usar DownLoadManager para descarga completa en segundo plano. ( validar si se puede ir consumiendo el stream )
+usar okhttp3 para intentar descargas parciales y manejo de streams. ( validar si se puede ir consumiendo el stream )
+
+comparar las 2 anteriores.
+
+Implementar la cancelacion de las descargas y del renderizado en casos extensos.
+validar la opcion de cachear en el dispocitivo los bitmaps ya renderizados y llamarlos si hacen falta. y validar un rango de cache tipo LIFO.
+verificar la compresion de los bitmaps.
+validar la relacion de aspecto.
+
+probar diferentes tipos de pdf, tamaños, relaciones de apecto, imagenes, videos, audio? investigar
+
+URGENTE!! CACHEAR LOS BITMAP Y BORRARLOS AL SALIR DE LA APP,
+LIMPIAR LOS BITMAP DE LA RAM Y CARGARLOS POR RANGOS (INTENTAR DIFERENTES TAMAÑOS DE RANGO)

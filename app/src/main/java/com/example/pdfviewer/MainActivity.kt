@@ -11,7 +11,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        LocalData.setFilesDir( this.filesDir )
+        LocalData.setFilesDir( this.cacheDir )
         enableEdgeToEdge()
         setContent {
             Navigation()

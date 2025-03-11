@@ -1,12 +1,15 @@
 package com.example.pdfviewer.ui.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,13 +27,13 @@ fun PDFViewer(
     nav: NavController = rememberNavController()
 ) {
 
-    val cached by viewModel.cached.collectAsStateWithLifecycle()
+    val pdf by viewModel.selectedPDF.collectAsStateWithLifecycle()
     val library by viewModel.library.collectAsStateWithLifecycle()
 
     Scaffold (
         topBar = {
             TopAppBarBack(
-                title = "Viewer",
+                title = pdf.name,
                 nav = nav
             )
         }
@@ -39,15 +42,12 @@ fun PDFViewer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding( innerPaddings )
+                .background( Color(0xFFE0E0E0) ),
+            contentAlignment = Alignment.Center
         ){
             when ( library ) {
                 Libraries.PdfRenderer -> {
-                    if ( cached ) {
-                        viewModel.saveCopy()
-                        PdfRendererContainer()
-                    } else {
-                        // solicitar por partes
-                    }
+                    PdfRendererContainer()
                 }
                 Libraries.PDFBox -> {
 

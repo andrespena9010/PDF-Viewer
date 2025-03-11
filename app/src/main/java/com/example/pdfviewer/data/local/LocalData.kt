@@ -1,5 +1,6 @@
 package com.example.pdfviewer.data.local
 
+import android.net.Uri
 import com.example.pdfviewer.data.model.SavePDFResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,6 +53,11 @@ object LocalData {
             }
         }
         return response
+    }
+
+    fun exist( fileName: String ): Uri? {
+        val file = File( dir, fileName )
+        return if ( file.exists() ) file.toUri() else null
     }
 
 }
