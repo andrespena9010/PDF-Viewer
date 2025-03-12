@@ -35,21 +35,21 @@ fun Principal(
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             ButtonPrincipal(
-                text = "Con cache",
+                text = "Renderizando total",
                 modifier = Modifier
                     .padding(30.dp)
                     .fillMaxWidth(0.7f)
             ) {
-                viewModel.setCache( true )
+                viewModel.setRenderAll( true )
                 nav.navigate( Views.Libraries )
             }
             ButtonPrincipal(
-                text = "Sin cache",
+                text = "Renderizado parcial",
                 modifier = Modifier
                     .padding(30.dp)
                     .fillMaxWidth(0.7f)
             ) {
-                viewModel.setCache( false )
+                viewModel.setRenderAll( false )
                 nav.navigate( Views.Libraries )
             }
         }

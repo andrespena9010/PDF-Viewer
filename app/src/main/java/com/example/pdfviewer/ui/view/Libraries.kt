@@ -30,7 +30,7 @@ fun Libraries(
         topBar = {
             TopAppBarBack(
                 title = "Libraries",
-                nav = nav
+                onCkick = { nav.popBackStack() }
             )
         }
     ){ innerPaddings ->

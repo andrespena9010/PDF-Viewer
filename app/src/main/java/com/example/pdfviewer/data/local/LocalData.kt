@@ -1,5 +1,7 @@
 package com.example.pdfviewer.data.local
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import com.example.pdfviewer.data.model.SavePDFResponse
 import kotlinx.coroutines.Dispatchers
@@ -7,6 +9,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import android.util.Log
 import androidx.core.net.toUri
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.PrintStream
 
 object LocalData {
@@ -58,6 +62,34 @@ object LocalData {
     fun exist( fileName: String ): Uri? {
         val file = File( dir, fileName )
         return if ( file.exists() ) file.toUri() else null
+    }
+
+    fun saveCacheBitmap( bitmap: Bitmap, bitmapName: String ){
+
+        val file = File( dir, bitmapName )
+        var fileOutputStream: FileOutputStream? = null
+        try {
+            fileOutputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } finally {
+            try {
+                fileOutputStream?.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+
+    }
+
+    fun loadCacheBitmap( bitmapName: String ): Bitmap? {
+        val file = File( dir, bitmapName )
+        return if ( file.exists() ) {
+            BitmapFactory.decodeFile( file.absolutePath )
+        } else {
+            null
+        }
     }
 
 }

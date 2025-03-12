@@ -34,7 +34,10 @@ fun PDFViewer(
         topBar = {
             TopAppBarBack(
                 title = pdf.name,
-                nav = nav
+                onCkick = {
+                    nav.popBackStack()
+                    viewModel.cancelLoad()
+                }
             )
         }
     ){ innerPaddings ->

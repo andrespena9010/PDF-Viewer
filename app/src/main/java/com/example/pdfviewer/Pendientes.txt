@@ -20,5 +20,5 @@ validar la relacion de aspecto.
 
 probar diferentes tipos de pdf, tamaños, relaciones de apecto, imagenes, videos, audio? investigar
 
-URGENTE!! CACHEAR LOS BITMAP Y BORRARLOS AL SALIR DE LA APP,
-LIMPIAR LOS BITMAP DE LA RAM Y CARGARLOS POR RANGOS (INTENTAR DIFERENTES TAMAÑOS DE RANGO)
+URGENTE!! CACHEAR LOS BITMAP Y BORRARLOS AL SALIR DE LA APP, -> Falta eliminarlos al salir de la app.
+LIMPIAR LOS BITMAP DE LA RAM Y CARGARLOS POR RANGOS (INTENTAR DIFERENTES TAMAÑOS DE RANGO) -> Hecho

@@ -33,7 +33,7 @@ fun PDFList(
         topBar = {
             TopAppBarBack(
                 title = "PDF",
-                nav = nav
+                onCkick = { nav.popBackStack() }
             )
         }
     ){ innerPaddings ->

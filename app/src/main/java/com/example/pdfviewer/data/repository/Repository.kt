@@ -1,10 +1,10 @@
 package com.example.pdfviewer.data.repository
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import com.example.pdfviewer.data.local.LocalData
 import com.example.pdfviewer.data.model.GetPDFResponse
-import com.example.pdfviewer.data.model.PDF
 import com.example.pdfviewer.data.model.SavePDFResponse
 import com.example.pdfviewer.data.model.SetUriResponse
 import com.example.pdfviewer.data.remote.Okhttp3
@@ -15,7 +15,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.PrintWriter
 
 object Repository {
@@ -61,6 +60,14 @@ object Repository {
 
     fun exist( fileName: String ): Uri? {
         return local.exist( fileName )
+    }
+
+    fun saveCacheBitmap( bitmap: Bitmap, bitmapName: String ){
+        local.saveCacheBitmap( bitmap, bitmapName )
+    }
+
+    fun loadCacheBitmap( bitmapName: String ): Bitmap? {
+        return local.loadCacheBitmap( bitmapName )
     }
 
 }
