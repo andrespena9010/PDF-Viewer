@@ -31,4 +31,4 @@ anterior Termina renderizado rango 194648 Milisegundos
 Termina renderizado rango Tiempo total: 338776 Milisegundos
 Termina renderizado rango Tiempo total: 6128 Milisegundos
 Termina renderizado rango Tiempo total: 6176 Milisegundos, pagina: 35
-Termina renderizado rango Tiempo total: 18452 Milisegundos, pagina: 35 sin hilos
+Termina renderizado rango Tiempo total: 18452 Milisegundos, pagina: 35 sin hilos..
