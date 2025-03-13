@@ -7,6 +7,7 @@ import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pdfviewer.data.model.PDF
+import com.example.pdfviewer.data.model.PdfPage
 import com.example.pdfviewer.data.repository.Repository
 import com.example.pdfviewer.ui.data.Libraries
 import com.example.pdfviewer.ui.data.PdfRendererObject
@@ -40,8 +41,8 @@ open class PrincipalViewModel(
     private val _selectedPDF = MutableStateFlow( PDF() )
     val selectedPDF: StateFlow<PDF> = _selectedPDF.asStateFlow()
 
-    private val _pdfBitMaps = MutableStateFlow<List<Bitmap?>>( listOf() )
-    val pdfBitMaps: StateFlow<List<Bitmap?>> = _pdfBitMaps.asStateFlow()
+    private val _pdfBitMaps = MutableStateFlow<List<PdfPage>>( listOf() )
+    val pdfBitMaps: StateFlow<List<PdfPage>> = _pdfBitMaps.asStateFlow()
 
     private val _loading = MutableStateFlow( false )
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
@@ -50,6 +51,7 @@ open class PrincipalViewModel(
 
     private val threadPool = Executors.newFixedThreadPool( 10 )
     private var renderStat = LocalTime.now()
+    private var renderAllComplete = false
 
     private var pdfPagesCount = 0
 
@@ -119,7 +121,7 @@ open class PrincipalViewModel(
             }
 
             pdfPagesCount = pdfRenderer.pageCount()
-            _pdfBitMaps.update { List<Bitmap?>( 1 ) { null } }
+            _pdfBitMaps.update { List<PdfPage>( pdfPagesCount ) { PdfPage() } }
 
             _loading.update { false }
 
@@ -128,8 +130,7 @@ open class PrincipalViewModel(
 
     fun renderFlow( previousIndex: Int, currentIndex: Int, nPages: Int ){
 
-        if ( renderAll.value ){
-
+        if ( renderAll.value && !renderAllComplete ){
             renderRange( 0 .. pdfPagesCount -1 , 0..nPages)
 
         } else {
@@ -291,6 +292,7 @@ open class PrincipalViewModel(
                 Log.i("TIMEPDF", "Termina renderizado ->>> (RENDER PAGINA $pageIndex) ${Duration.between( it, LocalTime.now()).toMillis()} Milisegundos\n")
 
                 if ( pageIndex == pdfPagesCount - 1 ){
+                    renderAllComplete = true
                     Log.i("TIMEPDF", "Termina renderizado rango Tiempo total: ${Duration.between( renderStat, LocalTime.now()).toMillis()} Milisegundos, pagina: $pageIndex\n")
                 }
 

@@ -1,5 +1,6 @@
 package com.example.pdfviewer.ui.custom
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -54,6 +55,7 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
             snapshotFlow { state.firstVisibleItemIndex }
                 .distinctUntilChanged()
                 .collectLatest { first ->
+                    Log.i("SCROLL", "pagina $first")
                     viewModel.renderFlow( previousPage, first, 6)
                     previousPage = first
                 }
