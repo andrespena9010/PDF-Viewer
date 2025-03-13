@@ -1,6 +1,5 @@
 package com.example.pdfviewer.ui.custom
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -11,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
@@ -32,9 +31,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.example.pdfviewer.ui.viewmodel.PViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -42,23 +45,23 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
 
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     val pdfBitMaps by viewModel.pdfBitMaps.collectAsStateWithLifecycle()
+    val pdfPagesLoading by viewModel.pdfPagesLoading.collectAsStateWithLifecycle()
     val state = rememberLazyListState()
-    var previousPage by remember { mutableIntStateOf( 0 ) }
     var pdfSize by remember { mutableStateOf( Pair(0,0) ) }
 
     LaunchedEffect( loading, state ) {
 
         if ( !loading ){
 
-            pdfSize = viewModel.getSize()
-
-            snapshotFlow { state.firstVisibleItemIndex }
-                .distinctUntilChanged()
-                .collectLatest { first ->
-                    Log.i("SCROLL", "pagina $first")
-                    viewModel.renderFlow( previousPage, first, 6)
-                    previousPage = first
+            viewModel.viewModelScope.launch {
+                withContext ( Dispatchers.Default ){
+                    snapshotFlow { state.firstVisibleItemIndex }
+                        .distinctUntilChanged()
+                        .collectLatest { first ->
+                            viewModel.renderFlow( first, 10)
+                        }
                 }
+            }
 
         }
 
@@ -89,7 +92,7 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            items( pdfBitMaps ){ bitmap ->
+            itemsIndexed ( pdfBitMaps ){ index, bitmap ->
 
                 Box (
                     modifier = Modifier
@@ -97,28 +100,8 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
                         .horizontalScroll( rememberScrollState() ),
                     contentAlignment = Alignment.Center
                 ){
-                    if ( bitmap == null ){
 
-                        Box(
-                            modifier = Modifier
-                                .size( pdfSize.first.dp, pdfSize.second.dp )
-                                .background(Color.White),
-                            contentAlignment = Alignment.Center
-
-                        ){
-
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .size(
-                                        (LocalView.current.width * 0.3).dp
-                                    ),
-                                strokeWidth = 50.dp,
-                                color = Color.Gray
-                            )
-
-                        }
-
-                    } else {
+                    if ( bitmap != null  ){
 
                         Image(
                             bitmap = bitmap.asImageBitmap(),
@@ -130,6 +113,31 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
                                 .background( Color.White ),
                             contentScale = ContentScale.Crop
                         )
+
+                    } else {
+
+                        Box(
+                            modifier = Modifier
+                                .size( (pdfSize.first * 0.5).dp, (pdfSize.second * 0.5).dp )
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+
+                        ){
+
+                            if ( pdfPagesLoading[ index ] ){
+
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .size(
+                                            (LocalView.current.width * 0.3).dp
+                                        ),
+                                    strokeWidth = 50.dp,
+                                    color = Color.Gray
+                                )
+
+                            }
+
+                        }
 
                     }
 

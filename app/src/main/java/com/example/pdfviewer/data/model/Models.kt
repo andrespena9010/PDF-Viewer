@@ -46,5 +46,6 @@ data class SetUriResponse (
 data class PdfPage(
     var ram: Boolean = false,
     var bitmap: Bitmap? = null,
-    var cached: Boolean = false
+    var cached: Boolean = false,
+    var loading: Boolean = false
 )

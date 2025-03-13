@@ -2,6 +2,7 @@ package com.example.pdfviewer.ui.data
 
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -19,8 +20,8 @@ sealed class Libraries {
 }
 
 val listLib = mapOf(
-    Pair( Libraries.PdfRenderer, "PdfRenderer" ),
-    Pair( Libraries.PDFBox, "PDFBox" )
+    Pair(Libraries.PdfRenderer, "PdfRenderer"),
+    Pair(Libraries.PDFBox, "PDFBox")
 )
 
 open class PdfRendererMix() {
@@ -37,7 +38,7 @@ open class PdfRendererMix() {
 
     fun init(library: Libraries) {
 
-        native = when ( library ) {
+        native = when (library) {
             Libraries.PDFBox -> {
                 false
             }
@@ -49,28 +50,28 @@ open class PdfRendererMix() {
 
     }
 
-    fun open( file: File ){
+    fun open(file: File) {
 
-        if ( native ){
+        if (native) {
 
             parcelFileDescriptor = ParcelFileDescriptor.open(
                 file,
                 ParcelFileDescriptor.MODE_READ_ONLY
             )
-            pdfRenderer = PdfRenderer( parcelFileDescriptor )
+            pdfRenderer = PdfRenderer(parcelFileDescriptor)
 
         } else {
 
-            pdfBoxDocument = PDDocument.load( file )
-            pdfBoxRenderer = PDFRenderer( pdfBoxDocument )
+            pdfBoxDocument = PDDocument.load(file)
+            pdfBoxRenderer = PDFRenderer(pdfBoxDocument)
 
         }
 
     }
 
-    fun pageCount(): Int{
+    fun pageCount(): Int {
 
-        return if ( native ){
+        return if (native) {
             pdfRenderer.pageCount
         } else {
             pdfBoxDocument.numberOfPages
@@ -80,28 +81,32 @@ open class PdfRendererMix() {
 
     fun getPageSize(): Pair<Int, Int> {
 
-        return if ( native ){
-            val page = pdfRenderer.openPage( 0 )
-            val size = Pair( page.width, page.height)
+        return if (native) {
+            val page = pdfRenderer.openPage(0)
+            val size = Pair(page.width, page.height)
             page.close()
-            fixImage( width = size.first , height = size.second, newWidth = deviceWidth)
+            fixImage(width = size.first, height = size.second, newWidth = deviceWidth)
         } else {
-            val page = pdfBoxDocument.getPage( 0 )
-            fixImage( width = page.mediaBox.width.toInt() , height = page.mediaBox.height.toInt(), newWidth = deviceWidth)
+            val page = pdfBoxDocument.getPage(0)
+            fixImage(
+                width = page.mediaBox.width.toInt(),
+                height = page.mediaBox.height.toInt(),
+                newWidth = deviceWidth
+            )
         }
 
     }
 
-    fun renderBitmap( indexPage: Int ): Bitmap {
+    fun renderBitmap(indexPage: Int): Bitmap { // TODO: colocar mutex
 
         var bitmap: Bitmap
 
-        if ( native ){
+        if (native) {
 
-            val page = pdfRenderer.openPage( indexPage )
-            val size = fixImage( width = page.width, height = page.height, newWidth = deviceWidth)
+            val page = pdfRenderer.openPage(indexPage)
+            val size = fixImage(width = page.width, height = page.height, newWidth = deviceWidth)
 
-            bitmap = createBitmap( size.first, size.second )
+            bitmap = createBitmap(size.first, size.second)
 
             page.render(
                 bitmap,
@@ -114,11 +119,15 @@ open class PdfRendererMix() {
 
         } else {
 
-            val page = pdfBoxDocument.getPage( indexPage )
-            val size = fixImage( width = page.mediaBox.width.toInt() , height = page.mediaBox.height.toInt(), newWidth = deviceWidth)
+            val page = pdfBoxDocument.getPage(indexPage)
+            val size = fixImage(
+                width = page.mediaBox.width.toInt(),
+                height = page.mediaBox.height.toInt(),
+                newWidth = deviceWidth
+            )
             // validar el tamaño y calidad
             try {
-                bitmap = pdfBoxRenderer.renderImage( 0 )
+                bitmap = pdfBoxRenderer.renderImage(0)
             } catch (e: Exception) {
                 bitmap = createBitmap(100, 100)
                 Log.i("TIMEPDF", "Inicia renderizado de la pagina ${e.message}")
@@ -130,37 +139,41 @@ open class PdfRendererMix() {
 
     }
 
-    fun getBitmapName( fileName: String, pageIndex: Int ): String {
+    fun getBitmapName(fileName: String, pageIndex: Int): String {
 
-        return if ( native ){
+        return if (native) {
 
-            val page = pdfRenderer.openPage( pageIndex )
-            val gcd = gcd( width = page.width, height = page.height )
-            val aspectRatio = Pair( first = page.width/gcd, second = page.height/gcd )
+            val page = pdfRenderer.openPage(pageIndex)
+            val gcd = gcd(width = page.width, height = page.height)
+            val aspectRatio = Pair(first = page.width / gcd, second = page.height / gcd)
             page.close()
             "${fileName}_${pageIndex}_${aspectRatio}_A"
 
         } else {
-            val page = pdfBoxDocument.getPage( pageIndex )
-            val gcd = gcd( width = page.mediaBox.width.toInt() , height = page.mediaBox.height.toInt() )
-            val aspectRatio = Pair( first = page.mediaBox.width.toInt()/gcd, second = page.mediaBox.height.toInt()/gcd )
+            val page = pdfBoxDocument.getPage(pageIndex)
+            val gcd =
+                gcd(width = page.mediaBox.width.toInt(), height = page.mediaBox.height.toInt())
+            val aspectRatio = Pair(
+                first = page.mediaBox.width.toInt() / gcd,
+                second = page.mediaBox.height.toInt() / gcd
+            )
             "${fileName}_${pageIndex}_$aspectRatio"
         }
 
     }
 
-    fun gcd( width: Int, height: Int): Int {
+    fun gcd(width: Int, height: Int): Int {
         return if (height == 0) width else gcd(height, width % height)
     }
 
-    fun fixImage( width: Int, height: Int, newWidth: Int): Pair<Int, Int> {
+    fun fixImage(width: Int, height: Int, newWidth: Int): Pair<Int, Int> {
         val newHeight = (height * newWidth) / width
-        return Pair( newWidth, newHeight )
+        return Pair(newWidth, newHeight)
     }
 
-    fun close(){
+    fun close() {
 
-        if ( native ){
+        if (native) {
             parcelFileDescriptor.close()
             pdfRenderer.close()
         } else {
@@ -171,4 +184,4 @@ open class PdfRendererMix() {
 
 }
 
-object PdfRendererObject: PdfRendererMix()
+object PdfRendererObject : PdfRendererMix()
