@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.Packaging
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -38,6 +40,7 @@ android {
     buildFeatures {
         compose = true
     }
+
 }
 
 dependencies {
@@ -55,6 +58,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlin.reflect)
     implementation(libs.okhttp)
+    implementation (libs.pdfbox.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

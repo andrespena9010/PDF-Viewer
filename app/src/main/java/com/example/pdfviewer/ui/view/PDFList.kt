@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pdfviewer.navigation.Views
@@ -29,10 +31,13 @@ fun PDFList(
     viewModel: PViewModel = PViewModel,
     nav: NavController = rememberNavController()
 ) {
+
+    val library by viewModel.library.collectAsStateWithLifecycle()
+
     Scaffold (
         topBar = {
             TopAppBarBack(
-                title = "PDF",
+                title = library.toString(),
                 onCkick = { nav.popBackStack() }
             )
         }

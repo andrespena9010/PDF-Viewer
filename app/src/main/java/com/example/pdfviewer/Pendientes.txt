@@ -22,3 +22,13 @@ probar diferentes tipos de pdf, tamaños, relaciones de apecto, imagenes, videos
 
 URGENTE!! CACHEAR LOS BITMAP Y BORRARLOS AL SALIR DE LA APP, -> Falta eliminarlos al salir de la app.
 LIMPIAR LOS BITMAP DE LA RAM Y CARGARLOS POR RANGOS (INTENTAR DIFERENTES TAMAÑOS DE RANGO) -> Hecho
+
+AGREGAR PAGINAS EN BLANCO PARA LAS PAGINAS PENDIENTES Y PONER CARGA MIENTRAS RENDERIZAN.
+
+
+BOE
+anterior Termina renderizado rango 194648 Milisegundos
+Termina renderizado rango Tiempo total: 338776 Milisegundos
+Termina renderizado rango Tiempo total: 6128 Milisegundos
+Termina renderizado rango Tiempo total: 6176 Milisegundos, pagina: 35
+Termina renderizado rango Tiempo total: 18452 Milisegundos, pagina: 35 sin hilos

@@ -28,7 +28,6 @@ fun PDFViewer(
 ) {
 
     val pdf by viewModel.selectedPDF.collectAsStateWithLifecycle()
-    val library by viewModel.library.collectAsStateWithLifecycle()
 
     Scaffold (
         topBar = {
@@ -48,17 +47,7 @@ fun PDFViewer(
                 .background( Color(0xFFE0E0E0) ),
             contentAlignment = Alignment.Center
         ){
-            when ( library ) {
-                Libraries.PdfRenderer -> {
-                    PdfRendererContainer()
-                }
-                Libraries.PDFBox -> {
-
-                }
-                Libraries.MuPDF -> {
-
-                }
-            }
+            PdfRendererContainer()
         }
     }
 }
