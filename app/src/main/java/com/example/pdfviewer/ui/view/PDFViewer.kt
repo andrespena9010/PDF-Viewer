@@ -17,20 +17,26 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pdfviewer.ui.custom.TopAppBarBack
 import com.example.pdfviewer.ui.theme.PDFViewerTheme
-import com.example.pdfviewer.ui.data.Libraries
 import com.example.pdfviewer.ui.custom.PdfRendererContainer
 import com.example.pdfviewer.ui.viewmodel.PViewModel
 
+/**
+ * Composable que muestra el visor de PDFs.
+ *
+ * @param viewModel ViewModel para la gestión de PDFs.
+ * @param nav Controlador de navegación para la vista.
+ */
 @Composable
 fun PDFViewer(
     viewModel: PViewModel = PViewModel,
     nav: NavController = rememberNavController()
 ) {
-
+    // Observa el PDF seleccionado del ViewModel
     val pdf by viewModel.selectedPDF.collectAsStateWithLifecycle()
 
-    Scaffold (
+    Scaffold(
         topBar = {
+            // Barra superior con título y botón de retroceso
             TopAppBarBack(
                 title = pdf.name,
                 onCkick = {
@@ -39,26 +45,30 @@ fun PDFViewer(
                 }
             )
         }
-    ){ innerPaddings ->
+    ) { innerPaddings ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding( innerPaddings )
-                .background( Color(0xFFE0E0E0) ),
+                .padding(innerPaddings)
+                .background(Color(0xFFE0E0E0)),
             contentAlignment = Alignment.Center
-        ){
+        ) {
+            // Contenedor para renderizar el PDF
             PdfRendererContainer()
         }
     }
 }
 
+/**
+ * Vista previa del composable PDFViewer en un dispositivo Pixel XL.
+ */
 @Preview(
     device = Devices.PIXEL_XL,
     showBackground = true,
     showSystemUi = true
 )
 @Composable
-private fun PreviewPixel(){
+private fun PreviewPixel() {
     PDFViewerTheme {
         PDFViewer()
     }

@@ -1,6 +1,5 @@
 package com.example.pdfviewer.ui.custom
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -18,9 +17,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,10 +35,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
+/**
+ * Composable que contiene el renderizador de PDF.
+ *
+ * @param viewModel ViewModel para la gestión de PDFs.
+ */
 @Composable
-fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
-
+fun PdfRendererContainer(viewModel: PViewModel = PViewModel) {
+    // Observa los estados de carga y bitmaps del PDF del ViewModel
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     val pdfBitMaps by viewModel.pdfBitMaps.collectAsStateWithLifecycle()
     val pdfPagesLoading by viewModel.pdfPagesLoading.collectAsStateWithLifecycle()
@@ -50,60 +50,50 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
 
     val totalRange = 10
 
-    LaunchedEffect( state, pdfPagesLoading ) {
-
-        if ( !loading ){
-
+    // Efecto lanzado cuando el estado de la lista cambia
+    LaunchedEffect(state) {
+        if (!loading) {
             viewModel.viewModelScope.launch {
-                withContext ( Dispatchers.Default ){
+                withContext(Dispatchers.Default) {
                     snapshotFlow { state.firstVisibleItemIndex }
                         .distinctUntilChanged()
                         .collectLatest { first ->
-                            Log.e("TIMEPDF", "Solicita carga.")
-                            viewModel.loadFlow( first, totalRange)
+                            viewModel.loadFlow(first, totalRange)
                         }
                 }
             }
-
         }
-
     }
 
-    if ( loading ){
-
-        Box (
+    // Muestra un indicador de carga mientras se cargan los PDFs
+    if (loading) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .horizontalScroll( rememberScrollState() ),
+                .horizontalScroll(rememberScrollState()),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator(
-                modifier = Modifier
-                    .size(150.dp),
+                modifier = Modifier.size(150.dp),
                 strokeWidth = 10.dp,
                 color = Color.White
             )
         }
-
     } else {
-
-        LazyColumn (
-            modifier = Modifier
-                .fillMaxSize(),
+        // Muestra las páginas del PDF en una lista desplazable
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
             state = state,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            itemsIndexed ( pdfBitMaps ){ index, bitmap ->
-
-                Box (
-                    modifier = Modifier
-                        .fillMaxSize(),
+        ) {
+            itemsIndexed(pdfBitMaps) { index, bitmap ->
+                Box(
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
-                ){
-
-                    if ( bitmap != null  ){
-
+                ) {
+                    if (bitmap != null) {
+                        // Muestra la imagen de la página del PDF
                         Image(
                             bitmap = bitmap.asImageBitmap(),
                             contentDescription = "PDF Page",
@@ -111,43 +101,29 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
                                 .fillMaxWidth()
                                 .padding(10.dp)
                                 .shadow(20.dp)
-                                .background( Color.White ),
+                                .background(Color.White),
                             contentScale = ContentScale.Crop
                         )
-
                     } else {
-
+                        // Muestra un indicador de carga mientras se carga la página del PDF
                         Box(
                             modifier = Modifier
                                 .size(500.dp)
                                 .padding(10.dp)
                                 .background(Color.White),
                             contentAlignment = Alignment.Center
-
-                        ){
-
-                            if ( pdfPagesLoading[ index ] ){
-
+                        ) {
+                            if (pdfPagesLoading[index]) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .size(
-                                            (LocalView.current.width * 0.3).dp
-                                        ),
+                                    modifier = Modifier.size((LocalView.current.width * 0.3).dp),
                                     strokeWidth = 20.dp,
                                     color = Color.Gray
                                 )
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
         }
-
     }
-
 }

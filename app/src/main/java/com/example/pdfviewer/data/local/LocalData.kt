@@ -15,6 +15,9 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.PrintStream
 
+/**
+ * Objeto singleton para gestionar datos locales de PDFs y bitmaps.
+ */
 object LocalData {
 
     private lateinit var filesDir: File
@@ -22,27 +25,39 @@ object LocalData {
 
     private val mutexMap = mutableMapOf<String, Mutex>()
 
-    fun setFilesDir( filesDir: File ){
+    /**
+     * Establece el directorio de archivos para almacenar PDFs y bitmaps.
+     *
+     * @param filesDir Directorio de archivos.
+     */
+    fun setFilesDir(filesDir: File) {
         this.filesDir = filesDir
-        dir = File(LocalData.filesDir, "pdf" )
-        if ( !dir.exists() ) dir.mkdir()
+        dir = File(LocalData.filesDir, "pdf")
+        if (!dir.exists()) dir.mkdir()
     }
 
-    suspend fun savePDF (
+    /**
+     * Guarda un PDF en el almacenamiento local.
+     *
+     * @param name Nombre del archivo PDF.
+     * @param pdfData Datos del PDF en bytes.
+     * @return Respuesta con el resultado de la operación.
+     */
+    suspend fun savePDF(
         name: String,
         pdfData: ByteArray
     ): SavePDFResponse {
         val response = SavePDFResponse()
-        val pdf = File( dir, name )
-        if ( pdf.exists() ){
+        val pdf = File(dir, name)
+        if (pdf.exists()) {
             response.success = false
             response.message = "The PDF is already exists."
             response.uri = pdf.toUri()
         } else {
-            withContext( Dispatchers.IO ) {
+            withContext(Dispatchers.IO) {
                 try {
-                    if ( pdf.createNewFile() ) {
-                        pdf.writeBytes( pdfData )
+                    if (pdf.createNewFile()) {
+                        pdf.writeBytes(pdfData)
                         response.success = true
                         response.message = "PDF created."
                         response.uri = pdf.toUri()
@@ -53,9 +68,9 @@ object LocalData {
                 } catch (e: Exception) {
                     response.success = false
                     response.message = "Error"
-                    response.exceptions.add( e )
+                    response.exceptions.add(e)
                     val err = ""
-                    e.printStackTrace( PrintStream( err ) )
+                    e.printStackTrace(PrintStream(err))
                     Log.e("LocalData.savePDF() -> ", err)
                 }
             }
@@ -63,16 +78,26 @@ object LocalData {
         return response
     }
 
-    fun exist( fileName: String ): Uri? {
-        val file = File( dir, fileName )
-        return if ( file.exists() ) file.toUri() else null
+    /**
+     * Verifica si un archivo PDF existe en el almacenamiento local.
+     *
+     * @param fileName Nombre del archivo PDF.
+     * @return Uri del archivo si existe, null en caso contrario.
+     */
+    fun exist(fileName: String): Uri? {
+        val file = File(dir, fileName)
+        return if (file.exists()) file.toUri() else null
     }
 
-    suspend fun saveCacheBitmap(bitmap: Bitmap, bitmapName: String ){
-
-        mutexMap.getOrPut( bitmapName ) { Mutex() }.withLock {
-
-            val file = File( dir, bitmapName )
+    /**
+     * Guarda un bitmap en la caché local.
+     *
+     * @param bitmap Bitmap a guardar.
+     * @param bitmapName Nombre del archivo bitmap.
+     */
+    suspend fun saveCacheBitmap(bitmap: Bitmap, bitmapName: String) {
+        mutexMap.getOrPut(bitmapName) { Mutex() }.withLock {
+            val file = File(dir, bitmapName)
             var fileOutputStream: FileOutputStream? = null
             try {
                 fileOutputStream = FileOutputStream(file)
@@ -86,24 +111,23 @@ object LocalData {
                     e.printStackTrace()
                 }
             }
-
         }
-
     }
 
-    suspend fun loadCacheBitmap(bitmapName: String ): Bitmap? {
-
-        mutexMap.getOrPut( bitmapName ) { Mutex() }.withLock {
-
-            val file = File( dir, bitmapName )
-            return if ( file.exists() ) {
-                BitmapFactory.decodeFile( file.absolutePath )
+    /**
+     * Carga un bitmap desde la caché local.
+     *
+     * @param bitmapName Nombre del archivo bitmap.
+     * @return Bitmap cargado, o null si no existe.
+     */
+    suspend fun loadCacheBitmap(bitmapName: String): Bitmap? {
+        mutexMap.getOrPut(bitmapName) { Mutex() }.withLock {
+            val file = File(dir, bitmapName)
+            return if (file.exists()) {
+                BitmapFactory.decodeFile(file.absolutePath)
             } else {
                 null
             }
-
         }
-
     }
-
 }
