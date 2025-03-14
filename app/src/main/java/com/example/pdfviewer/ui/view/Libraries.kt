@@ -16,7 +16,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pdfviewer.navigation.Views
 import com.example.pdfviewer.ui.custom.ButtonPrincipal
-import com.example.pdfviewer.ui.custom.TopAppBarBack
 import com.example.pdfviewer.ui.data.listLib
 import com.example.pdfviewer.ui.theme.PDFViewerTheme
 import com.example.pdfviewer.ui.viewmodel.PViewModel
@@ -27,12 +26,7 @@ fun Libraries(
     nav: NavController = rememberNavController()
 ){
     Scaffold(
-        topBar = {
-            TopAppBarBack(
-                title = "Libraries",
-                onCkick = { nav.popBackStack() }
-            )
-        }
+
     ){ innerPaddings ->
         Column(
             modifier = Modifier

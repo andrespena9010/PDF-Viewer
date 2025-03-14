@@ -8,16 +8,12 @@ import com.example.pdfviewer.ui.theme.PDFViewerTheme
 import com.example.pdfviewer.ui.view.Libraries
 import com.example.pdfviewer.ui.view.PDFList
 import com.example.pdfviewer.ui.view.PDFViewer
-import com.example.pdfviewer.ui.view.Principal
 import kotlinx.serialization.Serializable
 
 interface NoParamView
 
 @Serializable
 sealed class Views {
-
-    @Serializable
-    object Principal : NoParamView
 
     @Serializable
     object Libraries : NoParamView
@@ -36,14 +32,8 @@ fun Navigation(){
 
     NavHost(
         navController = navController,
-        startDestination = Views.Principal
+        startDestination = Views.Libraries
     ){
-
-        composable<Views.Principal>{
-            PDFViewerTheme {
-                Principal( nav = navController )
-            }
-        }
 
         composable<Views.Libraries>{
             PDFViewerTheme {

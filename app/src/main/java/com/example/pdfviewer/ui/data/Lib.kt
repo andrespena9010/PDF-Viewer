@@ -2,7 +2,6 @@ package com.example.pdfviewer.ui.data
 
 import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -34,6 +33,8 @@ open class PdfRendererMix() {
     private lateinit var pdfBoxDocument: PDDocument
     private lateinit var pdfBoxRenderer: PDFRenderer
 
+    private var pdfName = ""
+
     private var native = true
 
     fun init(library: Libraries) {
@@ -59,6 +60,8 @@ open class PdfRendererMix() {
                 ParcelFileDescriptor.MODE_READ_ONLY
             )
             pdfRenderer = PdfRenderer(parcelFileDescriptor)
+
+            pdfName = file.name
 
         } else {
 
@@ -97,7 +100,7 @@ open class PdfRendererMix() {
 
     }
 
-    fun renderBitmap(indexPage: Int): Bitmap { // TODO: colocar mutex
+    fun renderBitmap(indexPage: Int): Bitmap {
 
         var bitmap: Bitmap
 
@@ -125,45 +128,18 @@ open class PdfRendererMix() {
                 height = page.mediaBox.height.toInt(),
                 newWidth = deviceWidth
             )
-            // validar el tamaño y calidad
+
             try {
                 bitmap = pdfBoxRenderer.renderImage(0)
             } catch (e: Exception) {
                 bitmap = createBitmap(100, 100)
-                Log.i("TIMEPDF", "Inicia renderizado de la pagina ${e.message}")
+                Log.i("TIMEPDF", "Error al renderizar con pdfbox ${e.message}")
             }
 
         }
 
         return bitmap
 
-    }
-
-    fun getBitmapName(fileName: String, pageIndex: Int): String {
-
-        return if (native) {
-
-            val page = pdfRenderer.openPage(pageIndex)
-            val gcd = gcd(width = page.width, height = page.height)
-            val aspectRatio = Pair(first = page.width / gcd, second = page.height / gcd)
-            page.close()
-            "${fileName}_${pageIndex}_${aspectRatio}_A"
-
-        } else {
-            val page = pdfBoxDocument.getPage(pageIndex)
-            val gcd =
-                gcd(width = page.mediaBox.width.toInt(), height = page.mediaBox.height.toInt())
-            val aspectRatio = Pair(
-                first = page.mediaBox.width.toInt() / gcd,
-                second = page.mediaBox.height.toInt() / gcd
-            )
-            "${fileName}_${pageIndex}_$aspectRatio"
-        }
-
-    }
-
-    fun gcd(width: Int, height: Int): Int {
-        return if (height == 0) width else gcd(height, width % height)
     }
 
     fun fixImage(width: Int, height: Int, newWidth: Int): Pair<Int, Int> {

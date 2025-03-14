@@ -9,6 +9,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import android.util.Log
 import androidx.core.net.toUri
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.PrintStream
@@ -17,6 +19,8 @@ object LocalData {
 
     private lateinit var filesDir: File
     private lateinit var dir: File
+
+    private val mutexMap = mutableMapOf<String, Mutex>()
 
     fun setFilesDir( filesDir: File ){
         this.filesDir = filesDir
@@ -64,32 +68,42 @@ object LocalData {
         return if ( file.exists() ) file.toUri() else null
     }
 
-    fun saveCacheBitmap( bitmap: Bitmap, bitmapName: String ){
+    suspend fun saveCacheBitmap(bitmap: Bitmap, bitmapName: String ){
 
-        val file = File( dir, bitmapName )
-        var fileOutputStream: FileOutputStream? = null
-        try {
-            fileOutputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } finally {
+        mutexMap.getOrPut( bitmapName ) { Mutex() }.withLock {
+
+            val file = File( dir, bitmapName )
+            var fileOutputStream: FileOutputStream? = null
             try {
-                fileOutputStream?.close()
+                fileOutputStream = FileOutputStream(file)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
             } catch (e: IOException) {
                 e.printStackTrace()
+            } finally {
+                try {
+                    fileOutputStream?.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
             }
+
         }
 
     }
 
-    fun loadCacheBitmap( bitmapName: String ): Bitmap? {
-        val file = File( dir, bitmapName )
-        return if ( file.exists() ) {
-            BitmapFactory.decodeFile( file.absolutePath )
-        } else {
-            null
+    suspend fun loadCacheBitmap(bitmapName: String ): Bitmap? {
+
+        mutexMap.getOrPut( bitmapName ) { Mutex() }.withLock {
+
+            val file = File( dir, bitmapName )
+            return if ( file.exists() ) {
+                BitmapFactory.decodeFile( file.absolutePath )
+            } else {
+                null
+            }
+
         }
+
     }
 
 }

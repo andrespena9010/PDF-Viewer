@@ -62,11 +62,11 @@ object Repository {
         return local.exist( fileName )
     }
 
-    fun saveCacheBitmap( bitmap: Bitmap, bitmapName: String ){
+    suspend fun saveCacheBitmap(bitmap: Bitmap, bitmapName: String ){
         local.saveCacheBitmap( bitmap, bitmapName )
     }
 
-    fun loadCacheBitmap( bitmapName: String ): Bitmap? {
+    suspend fun loadCacheBitmap(bitmapName: String ): Bitmap? {
         return local.loadCacheBitmap( bitmapName )
     }
 

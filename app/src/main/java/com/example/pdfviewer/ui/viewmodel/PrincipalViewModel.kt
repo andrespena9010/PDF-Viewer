@@ -7,7 +7,6 @@ import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pdfviewer.data.model.PDF
-import com.example.pdfviewer.data.model.PdfPage
 import com.example.pdfviewer.data.repository.Repository
 import com.example.pdfviewer.ui.data.Libraries
 import com.example.pdfviewer.ui.data.PdfRendererObject
@@ -32,9 +31,6 @@ open class PrincipalViewModel(
     private var renderJob: Job? = null
     private var flowJob: Job? = null
 
-    private val _renderAll = MutableStateFlow(false)
-    val renderAll: StateFlow<Boolean> = _renderAll.asStateFlow()
-
     private val _library = MutableStateFlow<Libraries>( Libraries.PdfRenderer )
     val library: StateFlow<Libraries> = _library.asStateFlow()
 
@@ -57,13 +53,10 @@ open class PrincipalViewModel(
     private var renderAllComplete = false
 
     private var pdfPagesCount = 0
+    private var pagesRendered = 0
 
     fun getSize(): Pair<Int, Int>{
         return pdfRenderer.getPageSize()
-    }
-
-    fun setRenderAll(renderAll: Boolean ){
-        _renderAll.update { renderAll }
     }
 
     fun setLibrary( library: Libraries ){
@@ -127,13 +120,14 @@ open class PrincipalViewModel(
 
             _pdfBitMaps.update { List<Bitmap?>( pdfPagesCount ){ null } }
             _pdfPagesLoading.update { List<Boolean>( pdfPagesCount ){ false } }
+            renderDocument()
 
             _loading.update { false }
 
         }
     }
 
-    fun renderFlow( currentIndex: Int, nPages: Int ){
+    fun loadFlow(currentIndex: Int, nPages: Int ){
 
         flowJob?.let { job ->
             if (job.isActive) {
@@ -143,52 +137,86 @@ open class PrincipalViewModel(
 
         flowJob = viewModelScope.launch {
 
-            if ( renderAll.value && !renderAllComplete ){
-                renderRange( 0 .. pdfPagesCount -1 , 0..nPages)
+            val less = ( nPages / 2 )
+            val plus = ( nPages % 2 ) + ( nPages / 2 )
+            val rang = ( ( currentIndex - less ) .. ( currentIndex + plus ) )
 
-            } else {
+            if ( rang.first - 1 >= 0 ){
+                dropRamPage( rang.first - 1 )
+            }
 
-                /*val less = ( nPages / 2 )
-                val plus = ( nPages % 2 ) + ( nPages / 2 )
-                val rang = ( ( currentIndex - less ) .. ( currentIndex + plus ) )
-
-                if ( rang.first - 1 >= 0 ){
-                    dropRamPage( rang.first - 1 )
+            for ( index in rang ){
+                if ( index in 0 .. pdfPagesCount -1 ){
+                    loadBitmap( index )
                 }
+            }
 
-                for ( index in rang ){
-                    if ( index in 0 .. pdfPagesCount -1 ){
-                        renderBitmap( index, true)
-                    }
-                }
-
-                if ( rang.last + 1 < pdfPagesCount ){
-                    dropRamPage( rang.last + 1 )
-                }*/
-
+            if ( rang.last + 1 < pdfPagesCount ){
+                dropRamPage( rang.last + 1 )
             }
 
         }
 
     }
 
-    fun renderRange (range: IntRange, ramRange: IntRange ){
+    fun renderDocument(){
 
         renderStat = LocalTime.now()
-        Log.i("TIMEPDF", "Inicia renderizado rango $renderStat")
+        Log.i("TIMEPDF", "Inicia renderizado del Documento $renderStat")
+
+        pagesRendered = 0
 
         renderJob = viewModelScope.launch {
 
             try {
                 withContext( Dispatchers.Default ){
 
-                    for ( pageIndex in range ){
+                    for ( pageIndex in 0 .. pdfPagesCount - 1 ){
+
                         ensureActive()
-                        if ( pageIndex in ramRange ){
-                            renderBitmap( pageIndex, true )
-                        } else {
-                            renderBitmap( pageIndex, false )
-                        }
+
+                        //threadPool.execute { // TODO: hacer funcionar la concurrencia
+
+                            val it = LocalTime.now()
+                            Log.i("TIMEPDF", "Inicia renderizado ->>> (RENDER PAGINA $pageIndex)")
+
+                            val bitmapName = "${selectedPDF.value.fileName}_$pageIndex"
+
+                            renderJob?.let{
+
+                                if ( renderJob!!.isActive ){
+
+                                    if ( repository.exist( bitmapName ) == null ){
+
+                                        _pdfPagesLoading.update { current ->
+                                            val list = current.toMutableList()
+                                            list[ pageIndex ] = true
+                                            list
+                                        }
+
+                                        val bitmap = pdfRenderer.renderBitmap( pageIndex )
+                                        repository.saveCacheBitmap( bitmap, bitmapName )
+
+                                        _pdfPagesLoading.update { current ->
+                                            val list = current.toMutableList()
+                                            list[ pageIndex ] = false
+                                            list
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                            Log.i("TIMEPDF", "Termina renderizado ->>> (RENDER PAGINA $pageIndex) ${Duration.between( it, LocalTime.now()).toMillis()} Milisegundos\n")
+                            pagesRendered++
+
+                            if ( pagesRendered == pdfPagesCount ){
+                                Log.i("TIMEPDF", "---- Termina renderizado TOTAL Tiempo total ---- : ${Duration.between( renderStat, LocalTime.now()).toMillis()} Milisegundos, pagina: $pdfPagesCount")
+                            }
+                        //}
+
                     }
 
                 }
@@ -196,7 +224,6 @@ open class PrincipalViewModel(
                 Log.i("TIMEPDF", "Se cancela el renderizado... ${e.message}")
             }
         }
-
 
     }
 
@@ -214,86 +241,31 @@ open class PrincipalViewModel(
         }
     }
 
-    fun renderBitmap( pageIndex: Int , ram: Boolean ) {
+    suspend fun loadBitmap(pageIndex: Int ) {
 
         if ( pdfBitMaps.value[ pageIndex ] == null ){
 
-            val bitmapName = pdfRenderer.getBitmapName( selectedPDF.value.fileName, pageIndex )
+            val bitmapName = "${selectedPDF.value.fileName}_$pageIndex"
 
             if ( repository.exist( bitmapName ) != null ){
 
                 val it = LocalTime.now()
-                Log.i("TIMEPDF", "Carga de ---> (CACHE PAGINA $pageIndex)")
+                Log.i("TIMEPDF", "Carga ---> (CACHE PAGINA $pageIndex)")
 
                 val bitmap = repository.loadCacheBitmap( bitmapName ) ?: createBitmap( 100, 100 )
 
-                if ( ram ) {
-
-                    _pdfBitMaps.update { current ->
-                        val list = pdfBitMaps.value.toMutableList()
-                        list[ pageIndex ] = bitmap
-                        list.toList()
-                    }
-
+                _pdfBitMaps.update { current ->
+                    val list = pdfBitMaps.value.toMutableList()
+                    list[ pageIndex ] = bitmap
+                    list.toList()
                 }
 
-                Log.i("TIMEPDF", "Pagina $bitmapName reutilizada de ---> (CACHE PAGINA $pageIndex), tiempo de carga: ${
+                Log.i("TIMEPDF", "Pagina $bitmapName cargada ---> (CACHE PAGINA $pageIndex), tiempo de carga: ${
                     Duration.between(
                         it,
                         LocalTime.now()
                     ).toMillis()
                 } Milisegundos\n")
-
-                if ( pageIndex == pdfPagesCount - 1 && renderAll.value ){
-                    renderAllComplete = true
-                    Log.i("TIMEPDF", "Termina renderizado rango Tiempo total: ${Duration.between( renderStat, LocalTime.now()).toMillis()} Milisegundos, pagina: $pageIndex\n")
-                }
-
-            } else {
-
-                _pdfPagesLoading.update { current ->
-                    val list = current.toMutableList()
-                    list[ pageIndex ] = true
-                    list.toList()
-                }
-
-
-                threadPool.execute {
-
-                // TODO: este bloque irira en hilos
-
-                val it = LocalTime.now()
-                Log.i("TIMEPDF", "Inicia renderizado ->>> (RENDER PAGINA $pageIndex)")
-
-                val bitmap = pdfRenderer.renderBitmap( pageIndex )
-                repository.saveCacheBitmap( bitmap, bitmapName )
-
-                if ( ram ){
-
-                    _pdfBitMaps.update { current ->
-                        val list = pdfBitMaps.value.toMutableList()
-                        list[ pageIndex ] = bitmap
-                        list.toList()
-                    }
-
-                    _pdfPagesLoading.update { current ->
-                        val list = current.toMutableList()
-                        list[ pageIndex ] = false
-                        list.toList()
-                    }
-
-                }
-
-                Log.i("TIMEPDF", "Termina renderizado ->>> (RENDER PAGINA $pageIndex) ${Duration.between( it, LocalTime.now()).toMillis()} Milisegundos\n")
-
-                if ( pageIndex == pdfPagesCount - 1 && renderAll.value ){
-                    renderAllComplete = true
-                    Log.i("TIMEPDF", "Termina renderizado rango Tiempo total: ${Duration.between( renderStat, LocalTime.now()).toMillis()} Milisegundos, pagina: $pageIndex\n")
-                }
-
-                // TODO: este bloque irira en hilos
-
-                }
 
             }
 

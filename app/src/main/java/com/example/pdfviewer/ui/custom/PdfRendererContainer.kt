@@ -5,8 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,9 +48,8 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
     val pdfBitMaps by viewModel.pdfBitMaps.collectAsStateWithLifecycle()
     val pdfPagesLoading by viewModel.pdfPagesLoading.collectAsStateWithLifecycle()
     val state = rememberLazyListState()
-    var pdfSize by remember { mutableStateOf( Pair(0,0) ) }
 
-    LaunchedEffect( loading, state ) {
+    LaunchedEffect( loading, state, pdfPagesLoading ) {
 
         if ( !loading ){
 
@@ -58,7 +58,7 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
                     snapshotFlow { state.firstVisibleItemIndex }
                         .distinctUntilChanged()
                         .collectLatest { first ->
-                            viewModel.renderFlow( first, 10)
+                            viewModel.loadFlow( first, 10)
                         }
                 }
             }
@@ -118,7 +118,8 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
 
                         Box(
                             modifier = Modifier
-                                .size( (pdfSize.first * 0.5).dp, (pdfSize.second * 0.5).dp )
+                                .size(500.dp)
+                                .padding(10.dp)
                                 .background(Color.White),
                             contentAlignment = Alignment.Center
 
