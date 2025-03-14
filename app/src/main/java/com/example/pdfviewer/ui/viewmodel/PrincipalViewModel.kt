@@ -10,6 +10,7 @@ import com.example.pdfviewer.data.model.PDF
 import com.example.pdfviewer.data.repository.Repository
 import com.example.pdfviewer.ui.data.Libraries
 import com.example.pdfviewer.ui.data.PdfRendererObject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -48,16 +49,13 @@ open class PrincipalViewModel(
 
     private val pdfRenderer = PdfRendererObject
 
-    private val threadPool = Executors.newFixedThreadPool( 10 )
+    private val loadThreadPool = Executors.newFixedThreadPool( 10 )
+    private val renderThreadPool = Executors.newFixedThreadPool( 10 )
     private var renderStat = LocalTime.now()
     private var renderAllComplete = false
 
     private var pdfPagesCount = 0
     private var pagesRendered = 0
-
-    fun getSize(): Pair<Int, Int>{
-        return pdfRenderer.getPageSize()
-    }
 
     fun setLibrary( library: Libraries ){
         _library.update { library }
@@ -135,7 +133,7 @@ open class PrincipalViewModel(
             }
         }
 
-        flowJob = viewModelScope.launch {
+        flowJob = viewModelScope.launch ( Dispatchers.Default ) {
 
             val less = ( nPages / 2 )
             val plus = ( nPages % 2 ) + ( nPages / 2 )
@@ -173,8 +171,6 @@ open class PrincipalViewModel(
 
                     for ( pageIndex in 0 .. pdfPagesCount - 1 ){
 
-                        ensureActive()
-
                         //threadPool.execute { // TODO: hacer funcionar la concurrencia
 
                             val it = LocalTime.now()
@@ -193,6 +189,8 @@ open class PrincipalViewModel(
                                             list[ pageIndex ] = true
                                             list
                                         }
+
+                                        ensureActive()
 
                                         val bitmap = pdfRenderer.renderBitmap( pageIndex )
                                         repository.saveCacheBitmap( bitmap, bitmapName )
@@ -241,7 +239,7 @@ open class PrincipalViewModel(
         }
     }
 
-    suspend fun loadBitmap(pageIndex: Int ) {
+    fun loadBitmap(pageIndex: Int ) {
 
         if ( pdfBitMaps.value[ pageIndex ] == null ){
 
@@ -249,23 +247,30 @@ open class PrincipalViewModel(
 
             if ( repository.exist( bitmapName ) != null ){
 
-                val it = LocalTime.now()
-                Log.i("TIMEPDF", "Carga ---> (CACHE PAGINA $pageIndex)")
+                loadThreadPool.execute {
 
-                val bitmap = repository.loadCacheBitmap( bitmapName ) ?: createBitmap( 100, 100 )
+                    CoroutineScope( Dispatchers.Default ).launch {
 
-                _pdfBitMaps.update { current ->
-                    val list = pdfBitMaps.value.toMutableList()
-                    list[ pageIndex ] = bitmap
-                    list.toList()
+                        val it = LocalTime.now()
+
+                        val bitmap = repository.loadCacheBitmap( bitmapName ) ?: createBitmap( 100, 100 )
+
+                        _pdfBitMaps.update { current ->
+                            val list = pdfBitMaps.value.toMutableList()
+                            list[ pageIndex ] = bitmap
+                            list.toList()
+                        }
+
+                        Log.i("TIMEPDF", "Pagina $bitmapName cargada ---> (CACHE PAGINA $pageIndex), tiempo de carga: ${
+                            Duration.between(
+                                it,
+                                LocalTime.now()
+                            ).toMillis()
+                        } Milisegundos\n")
+
+                    }
+
                 }
-
-                Log.i("TIMEPDF", "Pagina $bitmapName cargada ---> (CACHE PAGINA $pageIndex), tiempo de carga: ${
-                    Duration.between(
-                        it,
-                        LocalTime.now()
-                    ).toMillis()
-                } Milisegundos\n")
 
             }
 

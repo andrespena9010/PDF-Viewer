@@ -1,14 +1,13 @@
 package com.example.pdfviewer.ui.custom
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -49,7 +48,9 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
     val pdfPagesLoading by viewModel.pdfPagesLoading.collectAsStateWithLifecycle()
     val state = rememberLazyListState()
 
-    LaunchedEffect( loading, state, pdfPagesLoading ) {
+    val totalRange = 10
+
+    LaunchedEffect( state, pdfPagesLoading ) {
 
         if ( !loading ){
 
@@ -58,7 +59,8 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
                     snapshotFlow { state.firstVisibleItemIndex }
                         .distinctUntilChanged()
                         .collectLatest { first ->
-                            viewModel.loadFlow( first, 10)
+                            Log.e("TIMEPDF", "Solicita carga.")
+                            viewModel.loadFlow( first, totalRange)
                         }
                 }
             }
@@ -96,8 +98,7 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
 
                 Box (
                     modifier = Modifier
-                        .fillMaxSize()
-                        .horizontalScroll( rememberScrollState() ),
+                        .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ){
 
@@ -132,7 +133,7 @@ fun PdfRendererContainer( viewModel: PViewModel = PViewModel ) {
                                         .size(
                                             (LocalView.current.width * 0.3).dp
                                         ),
-                                    strokeWidth = 50.dp,
+                                    strokeWidth = 20.dp,
                                     color = Color.Gray
                                 )
 

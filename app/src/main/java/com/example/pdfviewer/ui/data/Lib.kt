@@ -29,6 +29,7 @@ open class PdfRendererMix() {
 
     private lateinit var parcelFileDescriptor: ParcelFileDescriptor
     private lateinit var pdfRenderer: PdfRenderer
+    private val openPages = mutableMapOf<Int,PdfRenderer.Page>()
 
     private lateinit var pdfBoxDocument: PDDocument
     private lateinit var pdfBoxRenderer: PDFRenderer
@@ -82,31 +83,14 @@ open class PdfRendererMix() {
 
     }
 
-    fun getPageSize(): Pair<Int, Int> {
-
-        return if (native) {
-            val page = pdfRenderer.openPage(0)
-            val size = Pair(page.width, page.height)
-            page.close()
-            fixImage(width = size.first, height = size.second, newWidth = deviceWidth)
-        } else {
-            val page = pdfBoxDocument.getPage(0)
-            fixImage(
-                width = page.mediaBox.width.toInt(),
-                height = page.mediaBox.height.toInt(),
-                newWidth = deviceWidth
-            )
-        }
-
-    }
-
-    fun renderBitmap(indexPage: Int): Bitmap {
+    fun renderBitmap( indexPage: Int ): Bitmap {
 
         var bitmap: Bitmap
 
         if (native) {
 
-            val page = pdfRenderer.openPage(indexPage)
+            val page = pdfRenderer.openPage( indexPage )
+            openPages[ indexPage ]= page
             val size = fixImage(width = page.width, height = page.height, newWidth = deviceWidth)
 
             bitmap = createBitmap(size.first, size.second)
@@ -119,6 +103,7 @@ open class PdfRendererMix() {
             )
 
             page.close()
+            openPages.remove( indexPage )
 
         } else {
 
@@ -150,8 +135,12 @@ open class PdfRendererMix() {
     fun close() {
 
         if (native) {
+
+            openPages.forEach { it.value.close() }
+            openPages.clear()
             parcelFileDescriptor.close()
             pdfRenderer.close()
+
         } else {
             pdfBoxDocument.close()
         }
