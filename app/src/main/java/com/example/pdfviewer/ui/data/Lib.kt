@@ -52,7 +52,7 @@ open class PdfRendererMix {
     fun renderBitmap(indexPage: Int): Bitmap {
         var bitmap: Bitmap
 
-        val page = pdfRenderer.openPage(indexPage)
+        val page = pdfRenderer.openPage(indexPage)  // TODO: verificar el funcionamiento de este metodo en paralelo. condiciones de carrera
         openPages[indexPage] = page
         val size = fixImage(width = page.width, height = page.height, newWidth = deviceWidth)
 
