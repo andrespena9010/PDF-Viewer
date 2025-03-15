@@ -47,21 +47,34 @@ fun PdfRendererContainer(viewModel: PViewModel = PViewModel) {
     val pdfBitMaps by viewModel.pdfBitMaps.collectAsStateWithLifecycle()
     val pdfPagesLoading by viewModel.pdfPagesLoading.collectAsStateWithLifecycle()
     val state = rememberLazyListState()
+    var lastVisibleItem = 0
 
     val totalRange = 10
 
     // Efecto lanzado cuando el estado de la lista cambia
-    LaunchedEffect(state) {
+    LaunchedEffect( pdfPagesLoading, state ) {
+
         if (!loading) {
-            viewModel.viewModelScope.launch {
-                withContext(Dispatchers.Default) {
-                    snapshotFlow { state.firstVisibleItemIndex }
-                        .distinctUntilChanged()
-                        .collectLatest { first ->
-                            viewModel.loadFlow(first, totalRange)
+
+            snapshotFlow { state.firstVisibleItemIndex }
+                .distinctUntilChanged()
+                .collectLatest { first ->
+
+                    if ( lastVisibleItem != first ){
+
+                        viewModel.viewModelScope.launch {
+                            withContext(Dispatchers.Default) {
+
+                                viewModel.loadFlow(first, totalRange)
+                                lastVisibleItem = first
+
+                            }
                         }
+
+                    }
+
                 }
-            }
+
         }
     }
 

@@ -2,7 +2,6 @@ package com.example.pdfviewer.ui.viewmodel
 
 import android.graphics.Bitmap
 import android.util.Log
-import androidx.core.graphics.createBitmap
 import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,7 +33,6 @@ open class PrincipalViewModel(
 ) : ViewModel() {
 
     private var renderJob: Job? = null
-    private var flowJob: Job? = null
 
     /**
      * Estado del PDF seleccionado.
@@ -69,6 +67,8 @@ open class PrincipalViewModel(
     private var pdfPagesCount = 0
     private var pagesRendered = 0
 
+    private var visibleRange = 0 .. 5
+
     /**
      * Establece el PDF seleccionado y guarda una copia.
      *
@@ -87,7 +87,7 @@ open class PrincipalViewModel(
      * Esta función verifica si el PDF ya existe en el repositorio. Si no existe, lo descarga y lo guarda.
      * Luego, abre el PDF con [pdfRenderer] y actualiza los estados de carga y páginas del PDF.
      */
-    fun saveCopy() {
+    private fun saveCopy() {
         _loading.update { true }
 
         viewModelScope.launch {
@@ -135,23 +135,21 @@ open class PrincipalViewModel(
      * @param nPages Número de páginas a cargar.
      */
     fun loadFlow(currentIndex: Int, nPages: Int) {
-        flowJob?.let { job ->
-            if (job.isActive) {
-                job.cancel()
-            }
-        }
 
-        flowJob = viewModelScope.launch(Dispatchers.Default) {
-            val less = (nPages / 2)
-            val plus = (nPages % 2) + (nPages / 2)
-            val rang = ((currentIndex - less)..(currentIndex + plus))
+        val less = (nPages / 2)
+        val plus = (nPages % 2) + (nPages / 2)
+        val rang = ((currentIndex - less)..(currentIndex + plus))
+
+        visibleRange = rang
+
+        viewModelScope.launch(Dispatchers.Default) {
 
             if (rang.first - 1 >= 0) {
                 dropRamPage(rang.first - 1)
             }
 
             for (index in rang) {
-                if (index in 0..pdfPagesCount - 1) {
+                if (index in 0..<pdfPagesCount) {
                     loadBitmap(index)
                 }
             }
@@ -160,6 +158,7 @@ open class PrincipalViewModel(
                 dropRamPage(rang.last + 1)
             }
         }
+
     }
 
     /**
@@ -168,7 +167,7 @@ open class PrincipalViewModel(
      * Esta función renderiza todas las páginas del PDF y guarda los bitmaps en el repositorio.
      * Actualiza los estados de carga y páginas del PDF.
      */
-    fun renderDocument() {
+    private fun renderDocument() {
         renderStat = LocalTime.now()
         Log.i("TIMEPDF", "Inicia renderizado del Documento $renderStat")
 
@@ -177,7 +176,7 @@ open class PrincipalViewModel(
         renderJob = viewModelScope.launch {
             try {
                 withContext(Dispatchers.Default) {
-                    for (pageIndex in 0..pdfPagesCount - 1) {
+                    for (pageIndex in 0..<pdfPagesCount) {
                         val it = LocalTime.now()
                         Log.i("TIMEPDF", "Inicia renderizado ->>> (RENDER PAGINA $pageIndex)")
 
@@ -195,7 +194,17 @@ open class PrincipalViewModel(
                                     ensureActive()
 
                                     val bitmap = pdfRenderer.renderBitmap(pageIndex)
-                                    repository.saveCacheBitmap(bitmap, bitmapName)
+                                    repository.saveCacheBitmap(bitmap, bitmapName) // HILOS!!! QUIZA FUNCIONE CON LA NUEVA CONFIGURACION
+
+                                    if ( pageIndex in  visibleRange ){
+
+                                        _pdfBitMaps.update { current ->
+                                            val list = current.toMutableList()
+                                            list[pageIndex] = bitmap
+                                            list
+                                        }
+
+                                    }
 
                                     _pdfPagesLoading.update { current ->
                                         val list = current.toMutableList()
@@ -238,7 +247,7 @@ open class PrincipalViewModel(
      *
      * @param pageIndex Índice de la página a liberar.
      */
-    fun dropRamPage(pageIndex: Int) {
+    private fun dropRamPage(pageIndex: Int) {
         _pdfBitMaps.update { current ->
             val list = current.toMutableList()
             list[pageIndex] = null
@@ -253,24 +262,34 @@ open class PrincipalViewModel(
      *
      * @param pageIndex Índice de la página a cargar.
      */
-    fun loadBitmap(pageIndex: Int) {
-        if (pdfBitMaps.value[pageIndex] == null) {
-            val bitmapName = "${selectedPDF.value.fileName}_$pageIndex"
+    private fun loadBitmap(pageIndex: Int) {
 
-            if (repository.exist(bitmapName) != null) {
-                loadThreadPool.execute {
-                    CoroutineScope(Dispatchers.Default).launch {
-                        val bitmap = repository.loadCacheBitmap(bitmapName) ?: createBitmap(100, 100)
+        loadThreadPool.execute {
+            CoroutineScope(Dispatchers.Default).launch {
 
-                        _pdfBitMaps.update { current ->
-                            val list = pdfBitMaps.value.toMutableList()
-                            list[pageIndex] = bitmap
-                            list.toList()
+                if (pdfBitMaps.value[pageIndex] == null) {
+                    val bitmapName = "${selectedPDF.value.fileName}_$pageIndex"
+
+                    if (repository.exist(bitmapName) != null) {
+
+                        if ( pageIndex in visibleRange ){
+
+                            val bitmap = repository.loadCacheBitmap(bitmapName)
+
+                            _pdfBitMaps.update { current ->
+                                val list = current.toMutableList()
+                                list[pageIndex] = bitmap
+                                list.toList()
+                            }
+
                         }
+
                     }
                 }
+
             }
         }
+
     }
 }
 
