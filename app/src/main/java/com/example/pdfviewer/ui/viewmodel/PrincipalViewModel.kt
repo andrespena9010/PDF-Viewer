@@ -13,7 +13,6 @@ import com.example.pdfviewer.data.model.PdfPage
 import com.example.pdfviewer.data.repository.Repository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -62,7 +61,7 @@ open class PrincipalViewModel(
     private val loadThreadPool = Executors.newFixedThreadPool(2)
     private val renderThreadPool = Executors.newFixedThreadPool(2)
     private var renderStat = LocalTime.now()
-    private var renderAllComplete = false
+    /*private var renderAllComplete = false*/
 
     private var pagesCount = 0
     private var pagesRendered = 0
@@ -282,13 +281,13 @@ open class PrincipalViewModel(
      *
      * Esta función cancela el trabajo de renderizado y cierra el renderizador de PDF.
      */
-    fun closeResources() {
+    /*fun closeResources() {
         renderAllComplete = false
         openPages.forEach { it.value.close() }
         openPages.clear()
         parcelFileDescriptor.close()
         pdfRenderer.close()
-    }
+    }*/
 
     /**
      * Libera una página de la memoria RAM.
