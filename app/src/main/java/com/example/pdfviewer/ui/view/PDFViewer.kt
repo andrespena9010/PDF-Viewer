@@ -41,7 +41,6 @@ fun PDFViewer(
                 title = pdf.name,
                 onCkick = {
                     nav.popBackStack()
-                    viewModel.cancelLoad()
                 }
             )
         }

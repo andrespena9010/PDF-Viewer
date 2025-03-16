@@ -1,0 +1,11 @@
+BOE, sin hilos ->  ---- Termina renderizado TOTAL Tiempo total ---- : 13902 Milisegundos, pagina: 36
+BOE, 10 hilos -> ---- Termina renderizado TOTAL Tiempo total ---- : 5756 Milisegundos, pagina: 36
+BOE, 5 hilos -> ---- Termina renderizado TOTAL Tiempo total ---- : 6194 Milisegundos, pagina: 36
+BOE, 3 hilos -> ---- Termina renderizado TOTAL Tiempo total ---- : 6302 Milisegundos, pagina: 36
+
+SE OPTIMIZA LA CONFIGURACION DEL RENDERIZADO:
+
+BOE, 1 hilo - TABLET ->  ---- Termina renderizado TOTAL Tiempo total ---- : 6228 Milisegundos, pagina: 36
+BOE, 2 hilos - TABLET -> ---- Termina renderizado TOTAL Tiempo total ---- : 4169 Milisegundos, pagina: 36
+BOE, 5 hilos - TABLET -> ---- Termina renderizado TOTAL Tiempo total ---- : 4256 Milisegundos, pagina: 36
+BOE, 10 hilos - TABLET -> ---- Termina renderizado TOTAL Tiempo total ---- : 4199 Milisegundos, pagina: 36

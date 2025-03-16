@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,15 +44,14 @@ import kotlinx.coroutines.withContext
 fun PdfRendererContainer(viewModel: PViewModel = PViewModel) {
     // Observa los estados de carga y bitmaps del PDF del ViewModel
     val loading by viewModel.loading.collectAsStateWithLifecycle()
-    val pdfBitMaps by viewModel.pdfBitMaps.collectAsStateWithLifecycle()
-    val pdfPagesLoading by viewModel.pdfPagesLoading.collectAsStateWithLifecycle()
+    val pdfPages by viewModel.pdfPages.collectAsStateWithLifecycle()
     val state = rememberLazyListState()
     var lastVisibleItem = 0
 
     val totalRange = 10
 
     // Efecto lanzado cuando el estado de la lista cambia
-    LaunchedEffect( pdfPagesLoading, state ) {
+    LaunchedEffect( pdfPages, state ) {
 
         if (!loading) {
 
@@ -100,15 +99,15 @@ fun PdfRendererContainer(viewModel: PViewModel = PViewModel) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            itemsIndexed(pdfBitMaps) { index, bitmap ->
+            items( pdfPages ) { page ->
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (bitmap != null) {
+                    if (page.bitmap != null) {
                         // Muestra la imagen de la página del PDF
                         Image(
-                            bitmap = bitmap.asImageBitmap(),
+                            bitmap = page.bitmap.asImageBitmap(),
                             contentDescription = "PDF Page",
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -126,7 +125,7 @@ fun PdfRendererContainer(viewModel: PViewModel = PViewModel) {
                                 .background(Color.White),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (pdfPagesLoading[index]) {
+                            if (page.pageLoading) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size((LocalView.current.width * 0.3).dp),
                                     strokeWidth = 20.dp,

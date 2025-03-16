@@ -1,5 +1,6 @@
 package com.example.pdfviewer.data.model
 
+import android.graphics.Bitmap
 import android.net.Uri
 
 data class PDF (
@@ -7,6 +8,12 @@ data class PDF (
     val fileName: String = "",
     val url: String = "",
     val uri: Uri? = null
+)
+
+data class PdfPage(
+    val bitmap: Bitmap?,
+    val pageLoading: Boolean,
+    val cachedBitmap: Boolean
 )
 
 data class SavePDFResponse (
