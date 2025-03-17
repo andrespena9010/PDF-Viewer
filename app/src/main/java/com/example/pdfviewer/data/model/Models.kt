@@ -4,11 +4,14 @@ import android.graphics.Bitmap
 import android.net.Uri
 
 data class PDF (
-    val name: String = "",
-    val fileName: String = "",
-    val url: String = "",
+    var fileName: String = "",
+    val url: String,
     val uri: Uri? = null
-)
+){
+    init {
+        fileName = url.split("/").last()
+    }
+}
 
 data class PdfPage(
     val bitmap: Bitmap?,

@@ -1,16 +1,13 @@
 package com.example.pdfviewer.ui.viewmodel
 
-import android.content.res.Resources
-import android.graphics.pdf.PdfRenderer
-import android.os.ParcelFileDescriptor
 import android.util.Log
-import androidx.core.graphics.createBitmap
 import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pdfviewer.data.model.PDF
 import com.example.pdfviewer.data.model.PdfPage
 import com.example.pdfviewer.data.repository.Repository
+import com.example.pdfviewer.ui.render.PDFRenderer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -32,18 +29,13 @@ open class PrincipalViewModel(
     private val repository: Repository = Repository
 ) : ViewModel() {
 
-    private val deviceWidth = Resources.getSystem().displayMetrics.widthPixels
-
-    private lateinit var parcelFileDescriptor: ParcelFileDescriptor
-    private lateinit var pdfRenderer: PdfRenderer
-    private val openPages = mutableMapOf<Int, PdfRenderer.Page>()
-
     private var pdfName = ""
+    private lateinit var pdfRenderer: PDFRenderer
 
     /**
      * Estado del PDF seleccionado.
      */
-    private val _selectedPDF = MutableStateFlow(PDF())
+    private val _selectedPDF = MutableStateFlow(PDF(url = ""))
     val selectedPDF: StateFlow<PDF> = _selectedPDF.asStateFlow()
 
     /**
@@ -61,7 +53,6 @@ open class PrincipalViewModel(
     private val loadThreadPool = Executors.newFixedThreadPool(2)
     private val renderThreadPool = Executors.newFixedThreadPool(2)
     private var renderStat = LocalTime.now()
-    /*private var renderAllComplete = false*/
 
     private var pagesCount = 0
     private var pagesRendered = 0
@@ -106,11 +97,7 @@ open class PrincipalViewModel(
                         )
                     }
                     val file = setUriResponse.savePDFResponse.uri!!.toFile()
-                    parcelFileDescriptor = ParcelFileDescriptor.open(
-                        file,
-                        ParcelFileDescriptor.MODE_READ_ONLY
-                    )
-                    pdfRenderer = PdfRenderer(parcelFileDescriptor)
+                    pdfRenderer = PDFRenderer( file )
                     pdfName = file.name
                 }
             } else {
@@ -120,15 +107,11 @@ open class PrincipalViewModel(
                     )
                 }
                 val file = uri.toFile()
-                parcelFileDescriptor = ParcelFileDescriptor.open(
-                    file,
-                    ParcelFileDescriptor.MODE_READ_ONLY
-                )
-                pdfRenderer = PdfRenderer(parcelFileDescriptor)
+                pdfRenderer = PDFRenderer( file )
                 pdfName = file.name
             }
 
-            pagesCount = pdfRenderer.pageCount
+            pagesCount = pdfRenderer.pageCount()
             _pdfPages.update { List<PdfPage>( pagesCount ){ PdfPage( bitmap = null, pageLoading = true, cachedBitmap = false) } }
 
             _loading.update { false }
@@ -205,24 +188,14 @@ open class PrincipalViewModel(
                                 list
                             }
 
-                            val page = pdfRenderer.openPage( pageIndex )
-                            openPages[ pageIndex ] = page
-                            val size = fixImage(width = page.width, height = page.height, newWidth = deviceWidth)
+                            val bitmap = pdfRenderer.getBitmapPage( pageIndex )
 
-                            val bitmap = createBitmap(size.first, size.second)
+                            if ( bitmap != null ){
 
-                            page.render(
-                                bitmap,
-                                null,
-                                null,
-                                PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
-                            )
+                                CoroutineScope( Dispatchers.IO ).launch {
+                                    repository.saveCacheBitmap(bitmap, bitmapName)
+                                }
 
-                            page.close()
-                            openPages.remove(pageIndex)
-
-                            CoroutineScope( Dispatchers.IO ).launch {
-                                repository.saveCacheBitmap(bitmap, bitmapName)
                             }
 
                             if ( pageIndex in  visibleRange ){
@@ -256,7 +229,6 @@ open class PrincipalViewModel(
                             loadBitmap( pageIndex )
                         }
 
-                        Log.i("TIMEPDF", "La pagina $pageIndex ya esta guardada")
                         pagesRendered++
 
                         if (pagesRendered == pagesCount) {
@@ -270,24 +242,6 @@ open class PrincipalViewModel(
             }
         }
     }
-
-    fun fixImage(width: Int, height: Int, newWidth: Int): Pair<Int, Int> {
-        val newHeight = (height * newWidth) / width
-        return Pair(newWidth, newHeight)
-    }
-
-    /**
-     * Cancela la carga del documento.
-     *
-     * Esta función cancela el trabajo de renderizado y cierra el renderizador de PDF.
-     */
-    /*fun closeResources() {
-        renderAllComplete = false
-        openPages.forEach { it.value.close() }
-        openPages.clear()
-        parcelFileDescriptor.close()
-        pdfRenderer.close()
-    }*/
 
     /**
      * Libera una página de la memoria RAM.

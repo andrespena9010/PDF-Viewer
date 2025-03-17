@@ -1,0 +1,110 @@
+VALIDACIONES GENERICAS:
+
+- Interacion con los pdf?
+        links
+        accesos directos
+        cambios de capas
+        formularios
+
+
+
+Fondo predeterminado: Los PDF suelen tener un fondo blanco estándar si no se define uno explícitamente. Verifica que tu visualizador respete esta configuración.
+Fondos personalizados: Pueden ser imágenes, vectores o degradados insertados como elementos de diseño. Prueba con:
+
+            PDF que usen imágenes rasterizadas (JPEG, PNG) o vectoriales (SVG) como fondo.
+
+            Fondos con transparencia (canales alfa) o efectos de fusión (blend modes).
+
+Fondos preconfigurados: Algunas herramientas como Adobe Acrobat permiten agregar fondos predefinidos (ej.: marcas de agua). Asegúrate de que tu visualizador renderice estos elementos sin superponer el contenido principal.
+
+    Problemas comunes:
+
+        Fondos que se ven oscuros o distorsionados si el visualizador no maneja correctamente los espacios de color (RGB, CMYK, escala de grises).
+
+        Fallos al procesar transparencias (ej.: elementos con opacidad parcial que aparecen sólidos).
+
+        Incompatibilidad con formatos de imagen específicos en el fondo (ej.: TIFF no soportado).
+
+2. Capas (Optional Content Groups - OCGs)
+
+    Qué son: Las capas (también llamadas "grupos de contenido opcional") permiten ocultar/mostrar elementos en el PDF, común en planos técnicos, manuales interactivos o documentos multilíngües.
+
+    Cómo probar:
+
+        Archivos con capas activas/inactivas por defecto (ej.: planos CAD con capas de electricidad, fontanería, etc.).
+
+        PDFs donde las capas dependen de JavaScript para interactuar (ej.: botones para mostrar/ocultar secciones).
+
+        Verifica si tu visualizador permite al usuario manipular las capas (activar/desactivar) y si respeta la configuración inicial del PDF.
+
+    Riesgos:
+
+        Capas invisibles que se muestran por error (o viceversa).
+
+        Problemas de rendimiento si hay muchas capas complejas.
+
+        Incompatibilidad con OCGs anidadas o con lógica condicional.
+
+3. Formatos y Estándares de PDF
+
+    Tipos de PDF:
+
+        PDF/A (Archivado): Diseñado para preservación a largo plazo. Usa fuentes incrustadas y evita elementos dinámicos. Prueba si tu visualizador soporta versiones como PDF/A-1a, PDF/A-2b, etc.
+
+        PDF/X (Impresión): Enfocado en preprensa. Verifica manejo de perfiles de color ICC y márgenes de sangrado.
+
+        PDF/UA (Accesibilidad): Requiere estructura semántica para lectores de pantalla. Chequea compatibilidad con etiquetas, orden de lectura y texto alternativo.
+
+        PDF con formularios: Asegúrate de que campos interactivos (XFA/AcroForms) se muestren y sean editables.
+
+        PDF Digitalizado: Archivos basados en imágenes (sin texto seleccionable). Verifica si tu visualizador permite OCR integrado.
+
+    Versiones de PDF:
+
+        Prueba con PDF 1.4 (transparencias básicas), PDF 1.7 (Adobe XFA) y PDF 2.0 (estándar ISO más reciente).
+
+4. Elementos Gráficos Avanzados
+
+    Transparencias y Efectos:
+
+        Efectos de fusión (Multiply, Overlay, etc.) en imágenes o vectores.
+
+        Máscaras de recorte y suavizado de bordes (anti-aliasing).
+
+    Fuentes Incrustadas:
+
+        Algunos PDF usan fuentes no estándar. Si el visualizador no las soporta, puede sustituirlas por otras, alterando el diseño.
+
+    Objetos 3D y Multimedia:
+
+        Archivos con modelos 3D, vídeos incrustados o animaciones (ej.: presentaciones). Requieren soporte para plugins o renderizado nativo.
+
+5. Compatibilidad con Interactividad
+
+    Hipervínculos y Marcadores:
+
+        Enlaces internos (a páginas del documento) y externos (a URLs). Verifica que funcionen correctamente.
+
+        Marcadores (bookmarks) para navegación jerárquica.
+
+    JavaScript en PDF:
+
+        Algunos PDF usan scripts para validar formularios, mostrar mensajes o controlar animaciones. Chequea si tu visualizador ejecuta estos scripts o los ignora.
+
+    Firmas Digitales y Seguridad:
+
+        Archivos encriptados con contraseña (256-bit AES, RC4).
+
+        Restricciones de impresión, edición o copia de texto.
+
+6. Rendimiento y Estabilidad
+
+    Archivos grandes:
+
+        PDFs con miles de páginas o imágenes en alta resolución (ej.: mapas, catálogos).
+
+        Verifica tiempos de carga y capacidad de desplazamiento fluido.
+
+    Recursos externos:
+
+        Algunos PDF cargan contenido desde URLs. Asegúrate de que tu visualizador maneje esto sin bloquearse.

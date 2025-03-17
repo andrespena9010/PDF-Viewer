@@ -44,7 +44,7 @@ fun PDFList(
         ) {
             pdfList.forEach { pdf ->
                 Text(
-                    text = pdf.name,
+                    text = pdf.fileName,
                     modifier = Modifier
                         .padding(5.dp)
                         .height(40.dp)

@@ -38,7 +38,7 @@ fun PDFViewer(
         topBar = {
             // Barra superior con título y botón de retroceso
             TopAppBarBack(
-                title = pdf.name,
+                title = pdf.fileName,
                 onCkick = {
                     nav.popBackStack()
                 }
