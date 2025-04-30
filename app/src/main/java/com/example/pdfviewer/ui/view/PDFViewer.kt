@@ -40,6 +40,7 @@ fun PDFViewer(
             TopAppBarBack(
                 title = pdf.fileName,
                 onCkick = {
+                    viewModel.cancelRender()
                     nav.popBackStack()
                 }
             )

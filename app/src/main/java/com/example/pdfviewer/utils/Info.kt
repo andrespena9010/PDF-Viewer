@@ -10,5 +10,6 @@ val pdfList = listOf(
     PDF( url = "https://pdfa.org/download-area/specifications/EA-PDF-v1.pdf" ),
     PDF( url = "https://www.irs.gov/pub/irs-pdf/fw4.pdf" ),
     PDF( url = "https://raw.githubusercontent.com/andrespena9010/Resourses/main/graficos.pdf" ),
-    PDF( url = "https://helpx.adobe.com/pdf/illustrator_reference.pdf" )
+    PDF( url = "https://helpx.adobe.com/pdf/illustrator_reference.pdf" ),
+    PDF( url = "https://sanlorenzo.com.pe/wp-content/uploads/2024/03/Ceramica-San-Lorenzo-Catalogo-General-2024.pdf" )
 )

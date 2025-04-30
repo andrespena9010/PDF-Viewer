@@ -5,8 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -120,18 +122,18 @@ fun PdfRendererContainer(viewModel: PViewModel = PViewModel) {
                         // Muestra un indicador de carga mientras se carga la página del PDF
                         Box(
                             modifier = Modifier
-                                .size(500.dp)
+                                .height(700.dp)
+                                .fillMaxWidth()
                                 .padding(10.dp)
                                 .background(Color.White),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (page.pageLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size((LocalView.current.width * 0.3).dp),
-                                    strokeWidth = 20.dp,
-                                    color = Color.Gray
-                                )
-                            }
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(200.dp),
+                                strokeWidth = 20.dp,
+                                color = Color.Gray
+                            )
                         }
                     }
                 }

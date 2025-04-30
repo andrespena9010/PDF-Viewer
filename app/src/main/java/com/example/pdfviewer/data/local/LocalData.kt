@@ -14,6 +14,8 @@ import kotlinx.coroutines.sync.withLock
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.PrintStream
+import java.io.PrintWriter
+import java.io.StringWriter
 
 /**
  * Objeto singleton para gestionar datos locales de PDFs y bitmaps.
@@ -32,7 +34,7 @@ object LocalData {
      */
     fun setFilesDir(filesDir: File) {
         this.filesDir = filesDir
-        dir = File(LocalData.filesDir, "pdf")
+        dir = File( LocalData.filesDir, "pdf")
         if (!dir.exists()) dir.mkdir()
     }
 
@@ -69,9 +71,11 @@ object LocalData {
                     response.success = false
                     response.message = "Error"
                     response.exceptions.add(e)
-                    val err = ""
-                    e.printStackTrace(PrintStream(err))
-                    Log.e("LocalData.savePDF() -> ", err)
+
+                    val sw = StringWriter()
+                    e.printStackTrace( PrintWriter( sw ) )
+                    Log.e("LocalData.savePDF() -> ", sw.toString())
+
                 }
             }
         }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.io.PrintWriter
+import java.io.StringWriter
 
 /**
  * Objeto singleton que actúa como repositorio para gestionar la descarga y almacenamiento de PDFs y bitmaps.
@@ -60,11 +61,9 @@ object Repository {
             deferredWeb.await()
             deferredLocal.await()
         } catch (e: Exception) {
-            val err = ""
-            withContext(Dispatchers.IO) {
-                e.printStackTrace(PrintWriter(err))
-            }
-            Log.e("Repository.setUri() -> ", err)
+            val sw = StringWriter()
+            e.printStackTrace( PrintWriter( sw ) )
+            Log.e("Repository.setUri() -> ", sw.toString())
         }
 
         return SetUriResponse(getPDFResponse = getResponse, savePDFResponse = saveResponse)

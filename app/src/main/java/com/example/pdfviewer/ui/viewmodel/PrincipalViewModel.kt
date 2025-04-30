@@ -10,15 +10,17 @@ import com.example.pdfviewer.data.repository.Repository
 import com.example.pdfviewer.ui.render.PDFRenderer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalTime
-import java.util.concurrent.Executors
 
 /**
  * ViewModel principal para la gestión de PDFs.
@@ -50,14 +52,18 @@ open class PrincipalViewModel(
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
-    private val loadThreadPool = Executors.newFixedThreadPool(2)
-    private val renderThreadPool = Executors.newFixedThreadPool(2)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val loadThreadPool = Dispatchers.IO.limitedParallelism(20)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val renderThreadPool = Dispatchers.IO.limitedParallelism(20)
     private var renderStat = LocalTime.now()
 
     private var pagesCount = 0
     private var pagesRendered = 0
 
     private var visibleRange = 0 .. 5
+
+    private var renderJob: Job? = null
 
     /**
      * Establece el PDF seleccionado y guarda una copia.
@@ -116,6 +122,8 @@ open class PrincipalViewModel(
 
             _loading.update { false }
 
+            loadFlow( 0, 10 )
+
             renderDocument()
 
         }
@@ -145,7 +153,7 @@ open class PrincipalViewModel(
             }
 
             for (index in rang) {
-                if (index in 0..<pagesCount) {
+                if (index in 0..< pagesCount) {
                     loadBitmap(index)
                 }
             }
@@ -155,6 +163,12 @@ open class PrincipalViewModel(
             }
         }
 
+    }
+
+    fun cancelRender(){
+        renderJob?.let {
+            renderJob!!.cancel()
+        }
     }
 
     /**
@@ -169,15 +183,17 @@ open class PrincipalViewModel(
 
         pagesRendered = 0
 
-        viewModelScope.launch {
+        renderJob = viewModelScope.launch {
+
             try {
-                for (pageIndex in 0..<pagesCount) {
+
+                for (pageIndex in 0..< pagesCount) {
 
                     val bitmapName = "${selectedPDF.value.fileName}_$pageIndex.png"
 
-                    if (repository.exist(bitmapName) == null) {
+                    if ( repository.exist(bitmapName) == null) {
 
-                        renderThreadPool.execute {
+                        withContext ( renderThreadPool ){
 
                             val it = LocalTime.now()
                             Log.i("TIMEPDF", "Inicia renderizado ->>> (RENDER PAGINA $pageIndex)")
@@ -225,10 +241,6 @@ open class PrincipalViewModel(
 
                     } else {
 
-                        if ( pageIndex in  visibleRange ){
-                            loadBitmap( pageIndex )
-                        }
-
                         pagesRendered++
 
                         if (pagesRendered == pagesCount) {
@@ -267,8 +279,9 @@ open class PrincipalViewModel(
      */
     private fun loadBitmap(pageIndex: Int) {
 
-        loadThreadPool.execute {
-            CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.Default).launch {
+
+            withContext ( loadThreadPool ){
 
                 if ( pdfPages.value[pageIndex].bitmap == null) {
 
@@ -292,6 +305,7 @@ open class PrincipalViewModel(
                 }
 
             }
+
         }
 
     }
